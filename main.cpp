@@ -1,5 +1,3 @@
-#include "./src/binary.cpp"
-
-int main(){
+int main() {
     return 0;
 }
