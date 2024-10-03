@@ -22,6 +22,8 @@ public:
     bool operator>(const Binary& other) const noexcept;
     bool operator<=(const Binary& other) const noexcept;
     bool operator>=(const Binary& other) const noexcept;
+    Binary& operator+=(const Binary& other) noexcept;
+    Binary& operator-=(const Binary& other);
     Binary operator+(const Binary& other) const noexcept;
     Binary operator-(const Binary& other) const ;
 

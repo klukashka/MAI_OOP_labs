@@ -204,9 +204,9 @@ bool Binary::operator>=(const Binary &other) const noexcept {
     return !(*this < other);
 }
 
-Binary Binary::operator+(const Binary& other) const noexcept {
+Binary& Binary::operator+=(const Binary& other) noexcept {
     size_t max_size = std::max(other.size_, size_) + 1;
-    unsigned char res[max_size];
+    unsigned char* res = new unsigned char[max_size]{};
     int remainder = 0;
     int first = 0, second = 0;
     int bin_sum;
@@ -227,26 +227,41 @@ Binary Binary::operator+(const Binary& other) const noexcept {
     if (res[max_size-1] == '0'){
         --max_size;
     }
-    return Binary(res, max_size);
+    delete[] array_;
+    array_ = res;
+    size_ = max_size;
+    return *this;
 }
 
-Binary Binary::operator-(const Binary& other) const {
+Binary& Binary::operator-=(const Binary& other) {
     if (*this < other){
         throw std::logic_error("Difference is negative");
     }
 
     Binary res(other);
-    if (this->size_ != other.size_){
-        res.make_binary_of_this_size(res, this->size_); // attention!
+    if (size_ != other.size_){
+        make_binary_of_this_size(res, size_);
     }
     invert(res);
     Binary one("1");
-    res = *this + res + one;
-    if (other.size_ < res.size_ && 1 < res.size_){
-        --res.size_;
+    *this = *this + res + one;
+    if (other.size_ < size_ && 1 < size_){
+        --size_;
     }
-    normalize_first_zeros(res);
-    return res;
+    normalize_first_zeros(*this);
+    return *this;
+}
+
+Binary Binary::operator+(const Binary& other) const noexcept {
+    Binary result(*this);
+    result += other;
+    return result;
+}
+
+Binary Binary::operator-(const Binary& other) const {
+    Binary result(*this);
+    result -= other;
+    return result;
 }
 
 // --------- destructor --------------

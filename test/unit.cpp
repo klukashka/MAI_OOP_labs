@@ -261,6 +261,18 @@ TEST(Arithmetic, test_19)
     ASSERT_TRUE(bin1 + bin == bins);
 }
 
+TEST(Arithmetic, test_20)
+{
+    Binary bin1(7), bin2(9), bin3(101);
+    Binary bin4(0);
+    bin4 += bin2;
+    bin4 -= bin1;
+    bin4 += bin3;
+    Binary bins(103);
+
+    ASSERT_TRUE(bin4 == bins);
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
