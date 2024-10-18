@@ -9,14 +9,15 @@ class Rectangle : public Figure {
 
 public:
     Rectangle();
-    Rectangle(Point& p1, Point& p2, Point& p3, Point& p4);
     Rectangle(Point p1, Point p2, Point p3, Point p4);
+    Rectangle(const Rectangle& other);
+    Rectangle(Rectangle&& other) noexcept;
 
     virtual Point get_center() const noexcept override;
 
     Rectangle& operator=(const Rectangle &other);
     Rectangle& operator=(Rectangle &&other);
-    bool operator==(const Rectangle &other);
+    bool operator==(const Rectangle &other) const;
     explicit operator double() const noexcept override;
 
     ~Rectangle(){};

@@ -1,28 +1,20 @@
 #include "../include/rectangle.hpp"
 
-double eps = std::numeric_limits<double>::epsilon();
-
-double scalar_prod(Point p1, Point p2) noexcept {
-    return p1.x_ * p2.x_ + p1.y_ * p2.y_;
-} 
-
 bool Rectangle::is_rectangle() const noexcept {
     double x1 = points[0].x_; double y1 = points[0].y_;
     double x2 = points[1].x_; double y2 = points[1].y_;
     double x3 = points[2].x_; double y3 = points[2].y_;
     double x4 = points[3].x_; double y4 = points[3].y_;
-    
+
     double a = sqrt(pow(std::abs(x1 - x2),2) + pow(std::abs(y1 - y2),2));
     double b = sqrt(pow(std::abs(x2 - x3),2) + pow(std::abs(y2 - y3),2));
     double c = sqrt(pow(std::abs(x3 - x4),2) + pow(std::abs(y3 - y4),2));
     double d = sqrt(pow(std::abs(x4 - x1),2) + pow(std::abs(y4 - y1),2));
 
-    std::cout << a << ' ' << b << ' ' << c << ' ' << d << '\n';
     if (!(a == c && b == d)){
         return false;
     }
-
-    for (int i = 1; i < 4; ++i){
+    for (int i = 1; i < 3; ++i){
         if (scalar_prod(points[i] - points[i-1], points[i+1] - points[i]) > eps){
             return false;
         }
@@ -38,15 +30,22 @@ bool Rectangle::is_rectangle() const noexcept {
 
 Rectangle::Rectangle() : points{Point(), Point(), Point(), Point()} {}
 
-Rectangle::Rectangle(Point& p1, Point& p2, Point& p3, Point& p4) : points{p1, p2, p3, p4}  {
+Rectangle::Rectangle(Point p1, Point p2, Point p3, Point p4) : points{p1, p2, p3, p4}  {
     if (!this->is_rectangle()){
         throw std::logic_error("Not a rectangle!");
     }
 }
 
-Rectangle::Rectangle(Point p1, Point p2, Point p3, Point p4) : points{p1, p2, p3, p4}  {
-    if (!this->is_rectangle()){
-        throw std::logic_error("Not a rectangle!");
+Rectangle::Rectangle(const Rectangle& other) : points{Point(), Point(), Point(), Point()}{
+    for (int i = 0; i < 4; ++i){
+        points[i] = other.points[i];
+    }
+}
+
+Rectangle::Rectangle(Rectangle&& other) noexcept {
+    for (int i = 0; i < 4; ++i){
+        points[i] = other.points[i];
+        other.points[i] = Point();
     }
 }
 
@@ -86,7 +85,7 @@ Rectangle& Rectangle::operator=(Rectangle &&other){
     return *this;
 }
 
-bool Rectangle::operator==(const Rectangle& other){
+bool Rectangle::operator==(const Rectangle& other) const {
     for(size_t i = 0; i < 4; ++i){
         if(points[i] != other.points[i]){
             return false;

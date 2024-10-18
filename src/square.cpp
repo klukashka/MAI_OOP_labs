@@ -1,11 +1,5 @@
 #include "../include/square.hpp"
 
-double eps = std::numeric_limits<double>::epsilon();
-
-double scalar_prod(Point p1, Point p2) noexcept{
-    return p1.x_ * p2.x_ + p1.y_ * p2.y_;
-} 
-
 bool Square::is_square() const noexcept {
     double x1 = points[0].x_; double y1 = points[0].y_;
     double x2 = points[1].x_; double y2 = points[1].y_;
@@ -21,7 +15,7 @@ bool Square::is_square() const noexcept {
         return false;
     }
 
-    for (int i = 1; i < 4; ++i){
+    for (int i = 1; i < 3; ++i){
         if (scalar_prod(points[i] - points[i-1], points[i+1] - points[i]) > eps){
             return false;
         }
@@ -37,15 +31,22 @@ bool Square::is_square() const noexcept {
 
 Square::Square() : points{Point(), Point(), Point(), Point()} {}
 
-Square::Square(Point& p1, Point& p2, Point& p3, Point& p4) : points{p1, p2, p3, p4}  {
+Square::Square(Point p1, Point p2, Point p3, Point p4) : points{p1, p2, p3, p4}  {
     if (!this->is_square()){
         throw std::logic_error("Not a Square!");
     }
 }
 
-Square::Square(Point p1, Point p2, Point p3, Point p4) : points{p1, p2, p3, p4}  {
-    if (!this->is_square()){
-        throw std::logic_error("Not a Square!");
+Square::Square(const Square& other) : points{Point(), Point(), Point(), Point()}{
+    for (int i = 0; i < 4; ++i){
+        points[i] = other.points[i];
+    }
+}
+
+Square::Square(Square&& other) noexcept {
+    for (int i = 0; i < 4; ++i){
+        points[i] = other.points[i];
+        other.points[i] = Point();
     }
 }
 
@@ -85,7 +86,7 @@ Square& Square::operator=(Square &&other){
     return *this;
 }
 
-bool Square::operator==(const Square& other){
+bool Square::operator==(const Square& other) const {
     for(size_t i = 0; i < 4; ++i){
         if(points[i] != other.points[i]){
             return false;

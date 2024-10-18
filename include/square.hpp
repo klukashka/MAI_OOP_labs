@@ -9,14 +9,15 @@ class Square : public Figure {
 
 public:
     Square();
-    Square(Point& p1, Point& p2, Point& p3, Point& p4);
     Square(Point p1, Point p2, Point p3, Point p4);
+    Square(const Square& other);
+    Square(Square&& other) noexcept;
 
     virtual Point get_center() const noexcept override;
 
     Square& operator=(const Square &other);
     Square& operator=(Square &&other);
-    bool operator==(const Square &other);
+    bool operator==(const Square &other) const;
     explicit operator double() const noexcept override;
 
     ~Square(){};

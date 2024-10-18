@@ -1,10 +1,21 @@
 #include "../include/triangle.hpp"
 
-Triangle::Triangle() : points{Point(), Point(), Point(), Point()} {}
-
-Triangle::Triangle(Point& p1, Point& p2, Point& p3) : points{p1, p2, p3}  {}
+Triangle::Triangle() : points{Point(), Point(), Point()} {}
 
 Triangle::Triangle(Point p1, Point p2, Point p3) : points{p1, p2, p3} {}
+
+Triangle::Triangle(const Triangle& other) : points{Point(), Point(), Point()}{
+    for (int i = 0; i < 3; ++i){
+        points[i] = other.points[i];
+    }
+}
+
+Triangle::Triangle(Triangle&& other) noexcept {
+    for (int i = 0; i < 3; ++i){
+        points[i] = other.points[i];
+        other.points[i] = Point();
+    }
+}
 
 Point Triangle::get_center() const noexcept {
     double x = 0, y = 0;
@@ -34,15 +45,12 @@ Triangle& Triangle::operator=(Triangle &&other){
 
     for(size_t i = 0; i < 3; ++i){
         points[i] = std::move(other.points[i]);
-        //points[i] = other.points[i];
-        //other.points[i] = nullptr;
-        
     }
 
     return *this;
 }
 
-bool Triangle::operator==(const Triangle& other){
+bool Triangle::operator==(const Triangle& other) const noexcept{
     for(size_t i = 0; i < 3; ++i){
         if(points[i] != other.points[i]){
             return false;
@@ -52,7 +60,6 @@ bool Triangle::operator==(const Triangle& other){
 }
 
 std::ostream& operator<<(std::ostream& os, const Triangle& other){
-    // os << "Triangle's coordinates x,y: "<< std::endl;
     for(size_t i = 0; i < 3; ++i){
         os << other.points[i] << std::endl;
     }
@@ -60,14 +67,13 @@ std::ostream& operator<<(std::ostream& os, const Triangle& other){
 }
 
 std::istream& operator>>(std::istream& is, Triangle& other) {
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < 3; ++i) {
         is >> other.points[i];
     }
     return is;
 }
 
 double Triangle::get_square() const noexcept {
-    //cout << "Triangle get_square() " << endl;
     double x1 = points[0].x_; double y1 = points[0].y_;
     double x2 = points[1].x_; double y2 = points[1].y_;
     double x3 = points[2].x_; double y3 = points[2].y_;
