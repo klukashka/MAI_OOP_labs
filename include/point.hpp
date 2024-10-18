@@ -4,7 +4,6 @@
 
 class Point
 {
-
     friend Point operator+(const Point& t, const Point& other);
     friend Point operator-(const Point& t, const Point& other);
     friend bool operator==(const Point& t, const Point& other);

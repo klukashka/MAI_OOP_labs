@@ -1,4 +1,3 @@
-#pragma once
 #include "../include/figure.hpp"
 
 double Figure::scalar_prod(Point p1, Point p2) const noexcept {
