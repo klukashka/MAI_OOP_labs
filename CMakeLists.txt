@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 # Добавление опций компиляции
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=maybe-uninitialized")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Werror=maybe-uninitialized")
 
 # Установка Google Test
 include(FetchContent)
@@ -21,7 +21,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 
-add_library(${CMAKE_PROJECT_NAME}_lib src/figure.cpp src/figure_vector.cpp src/point.cpp src/rectangle.cpp src/triangle.cpp)
+add_library(${CMAKE_PROJECT_NAME}_lib src/figure.cpp src/figure_vector.cpp src/point.cpp src/rectangle.cpp src/square.cpp src/triangle.cpp)
 # add_library(${CMAKE_PROJECT_NAME}_lib src/point.cpp)
 # add_library(${CMAKE_PROJECT_NAME}_lib src/rectangle.cpp)
 # add_library(${CMAKE_PROJECT_NAME}_lib src/triangle.cpp)

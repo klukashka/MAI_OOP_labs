@@ -1,15 +1,16 @@
 #include "../include/figure_vector.hpp"
 
-FigureVector::FigureVector() : buf(nullptr), size_(0), cap(3), head(0){
-    buf = new Figure*[cap];
+template <Scalar T>
+FigureVector<T>::FigureVector() : buf(nullptr), size_(0), cap(3), head(0){
+    buf = new Figure<T>*[cap];
     for (int i = 0; i < cap; i++) {
         buf[i] = nullptr;
     }
 }
 
-
-void FigureVector::resize(int new_size) {
-    Figure** tmp = new Figure*[new_size];
+template <Scalar T>
+void FigureVector<T>::resize(int new_size) {
+    Figure<T>** tmp = new Figure<T>*[new_size];
     for (int i = 0; i < new_size; i++) {
         tmp[i] = nullptr;
     }
@@ -23,11 +24,13 @@ void FigureVector::resize(int new_size) {
     head = 0;
 }
 
-int FigureVector::size() const noexcept { 
+template <Scalar T>
+int FigureVector<T>::size() const noexcept { 
     return size_;
 }
 
-void FigureVector::push_back(Figure* val) noexcept {
+template <Scalar T>
+void FigureVector<T>::push_back(Figure<T>* val) noexcept {
     if (size_ == cap) {
         resize(cap * 2);
     }
@@ -36,8 +39,8 @@ void FigureVector::push_back(Figure* val) noexcept {
     size_++;
 }
 
-
-const Figure* FigureVector::get(int ind) const {
+template <Scalar T>
+const Figure<T>* FigureVector<T>::get(int ind) const {
     if (ind >= 0 && ind < size_) {
         int real_ind = (head + ind) % cap;
         return buf[real_ind];
@@ -45,11 +48,12 @@ const Figure* FigureVector::get(int ind) const {
     throw std::out_of_range("Index is out of range");
 }
 
-void FigureVector::remove(int ind){
+template <Scalar T>
+void FigureVector<T>::remove(int ind){
     if (ind < 0 || ind > size_) {
         throw std::invalid_argument("Index out of range");
     }
-    Figure** new_buf = new Figure*[cap];
+    Figure<T>** new_buf = new Figure<T>*[cap];
 
     for (int i = 0; i < ind; i++) {
         int old_ind = (head + i) % cap;
@@ -69,7 +73,8 @@ void FigureVector::remove(int ind){
     }
 }
 
-FigureVector::~FigureVector(){
+template <Scalar T>
+FigureVector<T>::~FigureVector(){
     size_ = 0;
     cap = 0;
     head = 0;

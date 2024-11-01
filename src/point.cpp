@@ -1,28 +1,56 @@
 #include "../include/point.hpp"
 
-Point::Point() : x_{0}, y_{0} {}
+template <Scalar T>
+Point<T>::Point() noexcept : x_(0), y_(0) {}
 
-Point::Point(double x, double y) : x_{x}, y_{y} {}
+template <Scalar T>
+Point<T>::Point(T x, T y) noexcept : x_(x), y_(y) {}
 
-Point::Point(const Point &other) : x_(other.x_), y_(other.y_) {}
+template <Scalar T>
+Point<T>::Point(const Point<T> &other) noexcept : x_(other.x_), y_(other.y_) {}
 
-Point operator+(const Point& t, const Point& other){
-    return Point(t.x_ + other.x_, t.y_ + other.y_);
+template <Scalar T>
+Point<T> Point<T>::operator+(const Point<T>& other) const noexcept {
+    return Point(x_ + other.x_, y_ + other.y_);
+}   
+
+template <Scalar T>
+Point<T> Point<T>::operator-(const Point<T>& other) const noexcept {
+    return Point(x_ - other.x_, y_ - other.y_);
 }
 
-Point operator-(const Point& t, const Point& other){
-    return Point(t.x_ - other.x_, t.y_ - other.y_);
+template <Scalar T>
+bool Point<T>::operator==(const Point<T>& other) const noexcept {
+    return (x_ == other.x_) && (y_ == other.y_);
 }
 
-bool operator==(const Point& t, const Point& other){
-    return (t.x_ == other.x_) && (t.y_ == other.y_);
+template <Scalar T>
+bool Point<T>::operator!=(const Point<T> &other) const noexcept{
+    return (x_ != other.x_) || (y_ != other.y_);
 }
 
-bool operator!=(const Point &t, const Point &other){
-    return (t.x_ != other.x_) || (t.y_ != other.y_);
+template <Scalar T>
+bool Point<T>::operator<(const Point<T>& other) const noexcept{
+    return x_ < other.x_ && y_ < other.y_;
 }
 
-Point& Point::operator=(const Point &other){
+template <Scalar T>
+bool Point<T>::operator<=(const Point<T>& other) const noexcept{
+    return x_ <= other.x_ && y_ <= other.y_;
+}
+
+template <Scalar T>
+bool Point<T>::operator>(const Point<T>& other) const noexcept{
+    return x_ > other.x_ && y_ > other.y_;
+}
+
+template <Scalar T>
+bool Point<T>::operator>=(const Point<T>& other) const noexcept{
+    return x_ >= other.x_ && y_ >= other.y_;
+}
+
+template <Scalar T>
+Point<T>& Point<T>::operator=(const Point<T> &other) noexcept {
     if (this != &other) {
         x_ = other.x_;
         y_ = other.y_;
@@ -30,15 +58,16 @@ Point& Point::operator=(const Point &other){
     return *this;
 }
 
-std::istream& operator>>(std::istream &is, Point &p){
-    double x, y;
-    is >> x >> y;
-    p.x_ = x;
-    p.y_ = y;
-    return is;
+template <Scalar T>
+T& Point<T>::operator[](int ind) {
+    if (ind == 0) return x_;
+    if (ind == 1) return y_;
+    throw std::out_of_range("Index out of range");
 }
 
-std::ostream& operator<<(std::ostream& os, const Point& p){
-    os << "x  " << p.x_ << ", y  " << p.y_;
-    return os;
+template <Scalar T>
+T Point<T>::operator[](int ind) const {
+    if (ind == 0) return x_;
+    if (ind == 1) return y_;
+    throw std::out_of_range("Index out of range");
 }
