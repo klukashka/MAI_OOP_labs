@@ -21,10 +21,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 
-add_library(${CMAKE_PROJECT_NAME}_lib src/figure.cpp src/figure_vector.cpp src/point.cpp src/rectangle.cpp src/square.cpp src/triangle.cpp)
-# add_library(${CMAKE_PROJECT_NAME}_lib src/point.cpp)
-# add_library(${CMAKE_PROJECT_NAME}_lib src/rectangle.cpp)
-# add_library(${CMAKE_PROJECT_NAME}_lib src/triangle.cpp)
+add_library(${CMAKE_PROJECT_NAME}_lib src/list.cpp)
 
 add_executable(${CMAKE_PROJECT_NAME}_exe main.cpp)
 
