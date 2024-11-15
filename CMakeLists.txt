@@ -20,22 +20,15 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-
-add_library(${CMAKE_PROJECT_NAME}_lib src/list.cpp)
-
-add_executable(${CMAKE_PROJECT_NAME}_exe main.cpp)
-
-target_link_libraries(${CMAKE_PROJECT_NAME}_exe PRIVATE ${CMAKE_PROJECT_NAME}_lib)
+add_executable(main_${PROJECT_NAME} main.cpp)
 
 # Добавление тестов
 enable_testing()
 
-# add_executable(tests test)
-add_executable(tests test/unit.cpp)
-# add_executable(tests test/test_comparison.cpp)
-# add_executable(tests test/test_constructors.cpp)
-
-target_link_libraries(tests ${CMAKE_PROJECT_NAME}_lib gtest_main)
+# Создание тестового исполняемого файла и связывание его с Google Test и библиотекой проекта
+add_executable(test_${PROJECT_NAME} test/unit.cpp)
+target_link_libraries(test_${PROJECT_NAME} PRIVATE gtest_main)
 
 # Добавление тестов в тестовый набор
-add_test(NAME test COMMAND tests)
+include(GoogleTest)
+gtest_discover_tests(test_${PROJECT_NAME})

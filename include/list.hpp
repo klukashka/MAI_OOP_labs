@@ -112,7 +112,7 @@ public:
         } catch (...) {
             Node* next_node = nullptr;
             new_node = head_->next_;
-            for (size_t i = 0; i < created_object; ++i) {
+            for (size_t i = 0; i < created_object; ++i){
                 next_node = new_node->next_;
                 allocator_traits::destroy(alloc_, new_node);
                 allocator_traits::deallocate(alloc_, new_node, 1);
@@ -129,7 +129,7 @@ public:
         size_t created_object = 0;
         Node* last_node = nullptr;
         try {
-            while (first != last) {
+            while (first != last){
                 new_node = allocator_traits::allocate(alloc_, 1);
                 try {
                     allocator_traits::construct(alloc_, new_node, nullptr, *(first++));
@@ -148,7 +148,7 @@ public:
         } catch (...) {
             Node* next_node = nullptr;
             new_node = head_->next_;
-            for (size_t i = 0; i < created_object; ++i) {
+            for (size_t i = 0; i < created_object; ++i){
                 next_node = new_node->next_;
                 allocator_traits::destroy(alloc_, new_node);
                 allocator_traits::deallocate(alloc_, new_node, 1);
@@ -163,7 +163,7 @@ public:
         size_t created_object = 0;
         Node* last_node = nullptr;
         try {
-            for (auto it = other.begin(); it != other.end(); ++it) {
+            for (auto it = other.begin(); it != other.end(); ++it){
                 new_node = allocator_traits::allocate(alloc_, 1);
                 try {
                     allocator_traits::construct(alloc_, new_node, nullptr, *it);
@@ -175,30 +175,30 @@ public:
                     last_node = new_node;
                     ++created_object;
                 } catch (...) {
-                    allocator_traits::deallocate(alloc_, new_node, 1);
+                    allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
                     throw;
                 }
             }
         } catch (...) {
             Node* next_node = nullptr;
             new_node = head_->next_;
-            for (size_t i = 0; i < created_object; ++i) {
+            for (size_t i = 0; i < created_object; ++i){
                 next_node = new_node->next_;
                 allocator_traits::destroy(alloc_, new_node);
-                allocator_traits::deallocate(alloc_, new_node, 1);
+                allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
                 new_node = next_node;
             }
             throw;
         }
     }
 
-    MyList(const MyList& other)
+    MyList(const MyList& other, const allocator_& alloc)
         : head_(nullptr), alloc_(std::allocator_traits<allocator_>::select_on_container_copy_construction(other.alloc_)) {
         Node* new_node = nullptr;
         size_t created_object = 0;
         Node* last_node = nullptr;
         try {
-            for (auto it = other.Begin(); it != other.End(); ++it) {
+            for (auto it = other.Begin(); it != other.End(); ++it){
                 new_node = allocator_traits::allocate(alloc_, 1);
                 try {
                     allocator_traits::construct(alloc_, new_node, nullptr, *it);
@@ -210,7 +210,7 @@ public:
                     last_node = new_node;
                     ++created_object;
                 } catch (...) {
-                    allocator_traits::deallocate(alloc_, new_node, 1);
+                    allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
                     throw;
                 }
             }
@@ -220,54 +220,11 @@ public:
             for (size_t i = 0; i < created_object; ++i) {
                 next_node = new_node->next_;
                 allocator_traits::destroy(alloc_, new_node);
-                allocator_traits::deallocate(alloc_, new_node, 1);
+                allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
                 new_node = next_node;
             }
             throw;
         }
-    }
-
-    MyList& operator=(const MyList& other) {
-        if (this != &other) {
-            typename std::allocator_traits<allocator_>::template rebind_alloc<Node> new_alloc =
-                (allocator_traits::propagate_on_container_copy_assignment::value) ? (other.alloc_) : (alloc_);
-            Node* ptr = nullptr;
-            Node* new_node = nullptr;
-            size_t created_object = 0;
-            Node* last_node = nullptr;
-            try {
-                for (auto it = other.Begin(); it != other.End(); ++it) {
-                    new_node = allocator_traits::allocate(new_alloc, 1);
-                    try {
-                        allocator_traits::construct(new_alloc, new_node, nullptr, *it);
-                        if (created_object == 0) {
-                            ptr = new_node;
-                        } else {
-                            last_node->next_ = new_node;
-                        }
-                        last_node = new_node;
-                        ++created_object;
-                    } catch (...) {
-                        allocator_traits::deallocate(new_alloc, new_node, 1);
-                        throw;
-                    }
-                }
-            } catch (...) {
-                Node* next_node = nullptr;
-                new_node = head_->next_;
-                for (size_t it = 0; it < created_object; ++it) {
-                    next_node = new_node->next_;
-                    allocator_traits::destroy(new_alloc, new_node);
-                    allocator_traits::deallocate(new_alloc, new_node, 1);
-                    new_node = next_node;
-                }
-                throw;
-            }
-            Clear();
-            head_ = ptr;
-            alloc_ = new_alloc;
-        }
-        return *this;
     }
 
     size_t Size() const noexcept {
@@ -287,30 +244,30 @@ public:
         return (head_ == nullptr);
     }
 
-    Iterator InsertAfter(Iterator it, const T& value) {
+    Iterator InsertAfter(Iterator it, const T& value){
         Node* new_node = nullptr;
         try {
-            new_node = allocator_traits::allocate(alloc_, 1);
+            new_node = allocator_traits::allocate(alloc_, sizeof(Node));
             allocator_traits::construct(alloc_, new_node, it.head_->next_, value);
             it.head_->next_ = new_node;
             ++it;
         } catch (...) {
-            allocator_traits::deallocate(alloc_, new_node, 1);
+            allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
             throw;
         }
         return it;
     }
 
     template <typename... Args>
-    Iterator EmplaceAfter(Iterator it, Args&&... args) {
+    Iterator EmplaceAfter(Iterator it, Args&&... args){
         Node* new_node = nullptr;
         try {
-            new_node = allocator_traits::allocate(alloc_, 1);
+            new_node = allocator_traits::allocate(alloc_, sizeof(Node));
             allocator_traits::construct(alloc_, new_node, it.head_->next_, std::forward<Args>(args)...);
             it.head_->next_ = new_node;
             ++it;
         } catch (...) {
-            allocator_traits::deallocate(alloc_, new_node, 1);
+            allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
             throw;
         }
         return it;
@@ -320,11 +277,32 @@ public:
     void EmplaceFront(Args&&... args) {
         Node* new_node = nullptr;
         try {
-            new_node = allocator_traits::allocate(alloc_, 1);
+            new_node = allocator_traits::allocate(alloc_, sizeof(Node));
             allocator_traits::construct(alloc_, new_node, head_, std::forward<Args>(args)...);
             head_ = new_node;
         } catch (...) {
-            allocator_traits::deallocate(alloc_, new_node, 1);
+            allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
+            throw;
+        }
+    }
+
+    template <typename... Args>
+    void EmplaceBack(Args&&... args) {
+        Node* new_node = nullptr;
+        Node* tmp = head_;
+        try {
+            new_node = allocator_traits::allocate(alloc_, sizeof(Node));
+            allocator_traits::construct(alloc_, new_node, nullptr, std::forward<Args>(args)...);
+            if (head_ == nullptr) {
+                head_ = new_node;
+            } else {
+                while (tmp->next_ != nullptr) {
+                    tmp = tmp->next_;
+                }
+                tmp->next_ = new_node;
+            }
+        } catch (...) {
+            allocator_traits::deallocate(alloc_, new_node, sizeof(Node));
             throw;
         }
     }
@@ -332,7 +310,7 @@ public:
     Iterator EraseAfter(Iterator it) {
         Node* next_node = it.head_->next_->next_;
         allocator_traits::destroy(alloc_, it.head_->next_);
-        allocator_traits::deallocate(alloc_, it.head_->next_, 1);
+        allocator_traits::deallocate(alloc_, it.head_->next_, sizeof(Node));
         it.head_->next_ = next_node;
         return Iterator(next_node);
     }
@@ -341,14 +319,42 @@ public:
         EmplaceFront(value);
     }
 
+    void PushBack(const T& value) {
+        EmplaceBack(value);
+    }
+
     void PopFront() {
         if (IsEmpty()) {
             throw;
         }
         Node* next_node = head_->next_;
         allocator_traits::destroy(alloc_, head_);
-        allocator_traits::deallocate(alloc_, head_, 1);
+        allocator_traits::deallocate(alloc_, head_, sizeof(Node));
         head_ = next_node;
+    }
+
+    void PopBack() {
+        if (IsEmpty()) {
+            throw std::out_of_range("Error: cannot pop from an empty list");
+        }
+
+        if (head_->next_ == nullptr) {
+            allocator_traits::destroy(alloc_, head_);
+            allocator_traits::deallocate(alloc_, head_, sizeof(Node));
+            head_ = nullptr;
+            return;
+        }
+
+        Node* current = head_;
+        while (current->next_ && current->next_->next_) {
+            current = current->next_;
+        }
+
+        Node* last_node = current->next_;
+        current->next_ = nullptr;
+
+        allocator_traits::destroy(alloc_, last_node);
+        allocator_traits::deallocate(alloc_, last_node, sizeof(Node));
     }
 
     Iterator Find(const T& value) {
@@ -413,7 +419,7 @@ public:
         while (head_ != nullptr) {
             next_node = head_->next_;
             allocator_traits::destroy(alloc_, head_);
-            allocator_traits::deallocate(alloc_, head_, 1);
+            allocator_traits::deallocate(alloc_, head_, sizeof(Node));
             head_ = next_node;
         }
     }
