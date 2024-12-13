@@ -1,7 +1,26 @@
 #include <gtest/gtest.h>
 #include "../include/NPCFactory.hpp"
 
-TEST(NPCTest, CreateNPC) {
+// Тесты
+TEST(Test, test_00) {
+    auto npc = NPCFactory::createNPC("Elf", "Legolas", 100, 200);
+    EXPECT_EQ(npc->get_name(), "Legolas");
+    EXPECT_EQ(npc->get_type(), "Elf");
+}
+
+TEST(Test, test_01) {
+    auto npc = NPCFactory::createNPC("Dragon", "Smaug", 200, 300);
+    EXPECT_EQ(npc->get_name(), "Smaug");
+    EXPECT_EQ(npc->get_type(), "Dragon");
+}
+
+TEST(Test, test_02) {
+    auto npc = NPCFactory::createNPC("Druid", "Gandalf", 300, 400);
+    EXPECT_EQ(npc->get_name(), "Gandalf");
+    EXPECT_EQ(npc->get_type(), "Druid");
+}
+
+TEST(Test, test_03) {
     auto npc = NPCFactory::createNPC("Dragon", "Dragon1", 100, 200);
     ASSERT_NE(npc, nullptr);
     EXPECT_EQ(npc->get_type(), "Dragon");
@@ -10,7 +29,7 @@ TEST(NPCTest, CreateNPC) {
     EXPECT_EQ(npc->y, 200);
 }
 
-TEST(NPCTest, DeserializeNPC) {
+TEST(Test, test_04) {
     std::string data = "Elf Elf1 300 400";
     auto npc = NPC::deserialize(data);
     ASSERT_NE(npc, nullptr);
@@ -20,13 +39,13 @@ TEST(NPCTest, DeserializeNPC) {
     EXPECT_EQ(npc->y, 400);
 }
 
-TEST(NPCTest, DeserializeInvalidNPC) {
+TEST(Test, test_05) {
     std::string data = "InvalidType Unknown 0 0";
     auto npc = NPC::deserialize(data);
     EXPECT_EQ(npc, nullptr);
 }
 
-TEST(NPCTest, DistanceToNPC) {
+TEST(Test, test_06) {
     auto npc1 = NPCFactory::createNPC("Druid", "Druid1", 100, 200);
     auto npc2 = NPCFactory::createNPC("Elf", "ELf1", 150, 250);
 
@@ -34,7 +53,7 @@ TEST(NPCTest, DistanceToNPC) {
     EXPECT_NEAR(distance, 70.7107, 0.0001);
 }
 
-TEST(NPCTest, SaveAndLoadNPCsFromFile) {
+TEST(Test, test_07) {
     std::vector<std::shared_ptr<NPC>> npcs;
     npcs.push_back(NPCFactory::createNPC("Dragon", "Dragon1", 100, 200));
     npcs.push_back(NPCFactory::createNPC("Elf", "ELf1", 150, 250));
