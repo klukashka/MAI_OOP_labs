@@ -1,12 +1,5 @@
 #include "./include/NPCFactory.hpp"
 #include "./include/NPC.hpp"
-// #include "./include/Arena.hpp"
-// #include "./include/NPCFactory.hpp"
-// #include "./include/Observers.hpp"
-// #include "./include/NPC.hpp"
-// #include "./include/Dragon.hpp"
-// #include "./include/Druid.hpp"
-// #include "./include/Elf.hpp"
 #include <iostream>
 #include <thread>
 #include <shared_mutex>
@@ -16,67 +9,74 @@
 #include <vector>
 #include <mutex>
 
-std::vector<std::shared_ptr<NPC>> npcs;
-std::shared_mutex npc_mutex;
-std::mutex cout_mutex;
-std::atomic<bool> game_running = true;
+namespace GameLogic {
 
-constexpr int MAP_WIDTH = 500;
-constexpr int MAP_HEIGHT = 500;
-constexpr int GAME_DURATION = 30;
+namespace Globals {
+    std::vector<std::shared_ptr<NPC>> npc_list;
+    std::shared_mutex npc_access;
+    std::mutex console_output;
+    std::atomic<bool> is_running = true;
 
-int roll_dice() {
-    static thread_local std::mt19937 rng(std::random_device{}());
-    return std::uniform_int_distribution<int>(1, 6)(rng);
+    constexpr int MAP_WIDTH = 500;
+    constexpr int MAP_HEIGHT = 500;
+    constexpr int GAME_DURATION = 30;
 }
 
-int random_range(int min, int max) {
-    static thread_local std::mt19937 rng(std::random_device{}());
-    return std::uniform_int_distribution<int>(min, max)(rng);
-}
+class RandomEngine {
+public:
+    RandomEngine() : rng(std::random_device{}()) {}
 
-void move_npcs() {
-    while (game_running) {
-        {
-            std::unique_lock lock(npc_mutex);
-            for (auto& npc : npcs) {
-                if (npc->serialize().find("dead") == std::string::npos) {
-                    int dx = random_range(-npc->move_dist, npc->move_dist);
-                    int dy = random_range(-npc->move_dist, npc->move_dist);
+    int roll_die() const {
+        return std::uniform_int_distribution<int>(1, 6)(rng);
+    }
 
-                    npc->x = std::max(0, std::min(MAP_WIDTH - 1, npc->x + dx));
-                    npc->y = std::max(0, std::min(MAP_HEIGHT - 1, npc->y + dy));
-                }
+    int random_between(int min, int max) const {
+        return std::uniform_int_distribution<int>(min, max)(rng);
+    }
+
+private:
+    mutable std::mt19937 rng;
+};
+
+RandomEngine randomGen;
+
+void processNPCMovement() {
+    while (Globals::is_running) {
+        std::unique_lock lock(Globals::npc_access);
+        for (auto& npc : Globals::npc_list) {
+            if (npc->serialize().find("dead") == std::string::npos) {
+                auto dx = randomGen.random_between(-npc->move_dist, npc->move_dist);
+                auto dy = randomGen.random_between(-npc->move_dist, npc->move_dist);
+
+                npc->x = std::clamp(npc->x + dx, 0, Globals::MAP_WIDTH - 1);
+                npc->y = std::clamp(npc->y + dy, 0, Globals::MAP_HEIGHT - 1);
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
-void combat_npcs() {
-    while (game_running) {
-        {
-            std::unique_lock lock(npc_mutex);
-            for (size_t i = 0; i < npcs.size(); ++i) {
-                if (npcs[i]->serialize().find("dead") != std::string::npos) continue;
+void processNPCCombat() {
+    while (Globals::is_running) {
+        std::unique_lock lock(Globals::npc_access);
+        for (size_t i = 0; i < Globals::npc_list.size(); ++i) {
+            if (Globals::npc_list[i]->serialize().find("dead") != std::string::npos) continue;
 
-                for (size_t j = i + 1; j < npcs.size(); ++j) {
-                    if (npcs[j]->serialize().find("dead") != std::string::npos) continue;
+            for (size_t j = i + 1; j < Globals::npc_list.size(); ++j) {
+                if (Globals::npc_list[j]->serialize().find("dead") != std::string::npos) continue;
 
-                    double distance = npcs[i]->distance_to(npcs[j].get());
-                    if (distance <= npcs[i]->kill_dist || distance <= npcs[j]->kill_dist) {
-                        int attack = roll_dice();
-                        int defense = roll_dice();
-
-                        if (attack > defense) {
-                            npcs[j]->type += "_dead";
-                            std::lock_guard<std::mutex> cout_lock(cout_mutex);
-                            std::cout << npcs[i]->get_name() << " убил " << npcs[j]->get_name() << "\n";
-                        } else if (defense > attack) {
-                            npcs[i]->type += "_dead";
-                            std::lock_guard<std::mutex> cout_lock(cout_mutex);
-                            std::cout << npcs[j]->get_name() << " убил " << npcs[i]->get_name() << "\n";
-                        }
+                double distance = Globals::npc_list[i]->distance_to(Globals::npc_list[j].get());
+                if (distance <= Globals::npc_list[i]->kill_dist || distance <= Globals::npc_list[j]->kill_dist) {
+                    int attack_roll = randomGen.roll_die();
+                    int defense_roll = randomGen.roll_die();
+                    if (attack_roll > defense_roll) {
+                        Globals::npc_list[j]->type += "_dead";
+                        std::lock_guard<std::mutex> lock(Globals::console_output);
+                        std::cout << Globals::npc_list[i]->get_name() << " убил " << Globals::npc_list[j]->get_name() << "\n";
+                    } else if (defense_roll > attack_roll) {
+                        Globals::npc_list[i]->type += "_dead";
+                        std::lock_guard<std::mutex> lock(Globals::console_output);
+                        std::cout << Globals::npc_list[j]->get_name() << " убил " << Globals::npc_list[i]->get_name() << "\n";
                     }
                 }
             }
@@ -85,66 +85,69 @@ void combat_npcs() {
     }
 }
 
-void print_map() {
-    while (game_running) {
-        std::vector<std::vector<char>> map(MAP_HEIGHT, std::vector<char>(MAP_WIDTH, '.'));
+void drawGameMap() {
+    while (Globals::is_running) {
+        std::vector<std::vector<char>> game_map(Globals::MAP_HEIGHT, std::vector<char>(Globals::MAP_WIDTH, '.'));
         {
-            std::shared_lock lock(npc_mutex);
-            for (const auto& npc : npcs) {
+            std::shared_lock lock(Globals::npc_access);
+            for (const auto& npc : Globals::npc_list) {
                 if (npc->serialize().find("dead") == std::string::npos) {
-                    map[npc->y][npc->x] = npc->get_name()[0];
+                    game_map[npc->y][npc->x] = npc->get_name()[0];
                 }
             }
         }
+
         {
-            std::lock_guard<std::mutex> cout_lock(cout_mutex);
-            std::cout << "\033[2J\033[H";  // clear and move home
-            for (const auto& row : map) {
-                for (char cell : row) {
-                    std::cout << cell;
-                }
-                std::cout << "\n";
+            std::lock_guard<std::mutex> lock(Globals::console_output);
+            std::cout << "\033[2J\033[H";  // очистка экрана
+            for (const auto& row : game_map) {
+                for (char cell : row) std::cout << cell;
+                std::cout << '\n';
             }
-            std::cout << "\n";
         }
+
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
-int main() {
+void spawnNPCs() {
     for (int i = 0; i < 50; ++i) {
-        int x = random_range(0, MAP_WIDTH - 1);
-        int y = random_range(0, MAP_HEIGHT - 1);
+        int x = randomGen.random_between(0, Globals::MAP_WIDTH - 1);
+        int y = randomGen.random_between(0, Globals::MAP_HEIGHT - 1);
 
+        std::string npc_type = (i % 3 == 0) ? "Dragon" :
+                                (i % 3 == 1) ? "Druid" : "Elf";
 
-        std::string type;
-        if (i % 3 == 0) type = "Dragon";
-        else if (i % 3 == 1) type = "Druid";
-        else type = "Elf";
-
-        npcs.push_back(NPCFactory::createNPC(type, type + std::to_string(i), x, y));
+        Globals::npc_list.push_back(NPCFactory::createNPC(npc_type, npc_type + std::to_string(i), x, y));
     }
+}
 
-    std::thread move_thread(move_npcs);
-    std::thread combat_thread(combat_npcs);
-    std::thread print_thread(print_map);
+}
 
-    std::this_thread::sleep_for(std::chrono::seconds(GAME_DURATION));
-    game_running = false;
+int main() {
+    GameLogic::spawnNPCs();
 
-    move_thread.join();
-    combat_thread.join();
-    print_thread.join();
+    auto npcMover = std::thread(GameLogic::processNPCMovement);
+    auto npcCombater = std::thread(GameLogic::processNPCCombat);
+    auto mapDrawer = std::thread(GameLogic::drawGameMap);
 
-    std::lock_guard<std::mutex> cout_lock(cout_mutex);
-    std::cout << "Игра окончена. Выжившие NPC:\n";
+    std::this_thread::sleep_for(std::chrono::seconds(GameLogic::Globals::GAME_DURATION));
+    GameLogic::Globals::is_running = false;
+
+    npcMover.join();
+    npcCombater.join();
+    mapDrawer.join();
+
+    std::lock_guard<std::mutex> lock(GameLogic::Globals::console_output);
+    std::cout << "Игра завершена. NPC, которые выжили:\n";
     {
-        std::shared_lock lock(npc_mutex);
-        for (const auto& npc : npcs) {
+        std::shared_lock lock(GameLogic::Globals::npc_access);
+        for (const auto& npc : GameLogic::Globals::npc_list) {
             if (npc->serialize().find("dead") == std::string::npos) {
                 std::cout << npc->get_name() << " (" << npc->x << ", " << npc->y << ")\n";
             }
         }
     }
+
     return 0;
 }
